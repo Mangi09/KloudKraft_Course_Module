@@ -35,10 +35,13 @@ exports.up = async function (knex) {
       .references("cohorts.id")
       .onDelete("SET NULL");
     table
-      .foreign("assigned_trainer_id")
-      .references("users.id")
-      .onDelete("SET NULL");
-    table.timestamps(true, true);
+  .foreign("assigned_trainer_id")
+  .references("users.id")
+  .onDelete("SET NULL");
+table.integer("created_by").unsigned().nullable();
+table.foreign("created_by").references("users.id").onDelete("SET NULL");
+table.integer("duration_estimate").unsigned().nullable();
+table.timestamps(true, true);
   });
 
   await knex.schema.createTable("sections", (table) => {
