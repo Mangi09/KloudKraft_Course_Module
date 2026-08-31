@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --app-bg: #f9fafb;
+  --app-panel: #ffffff;
+  --app-primary: #2563eb;
+  --app-text: #111827;
+  --app-muted: #6b7280;
+  --app-border: rgba(17, 24, 39, 0.08);
+
+  --status-success: #16a34a;
+  --status-warning: #ca8a04;
+  --status-muted: #6b7280;
+  --status-danger: #dc2626;
+}
+
+.dark {
+  --app-bg: #000000;
+  --app-panel: #161b22;
+  --app-primary: #2563eb;
+  --app-text: #ffffff;
+  --app-muted: #9ca3af;
+  --app-border: rgba(255, 255, 255, 0.05);
+
+  --status-success: #22c55e;
+  --status-warning: #eab308;
+  --status-muted: #9ca3af;
+  --status-danger: #ef4444;
+}
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  --color-app-bg: var(--app-bg);
+  --color-app-panel: var(--app-panel);
+  --color-app-primary: var(--app-primary);
+  --color-app-text: var(--app-text);
+  --color-app-muted: var(--app-muted);
+  --color-app-border: var(--app-border);
+
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-muted: var(--status-muted);
+  --color-status-danger: var(--status-danger);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
