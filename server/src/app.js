@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -12,8 +13,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// --- Routers will be mounted here in later days ---
-// e.g. app.use("/api/auth", authRouter);
+app.use("/api/auth", authRoutes);
 
 // Centralized error-handling middleware (must be registered last)
 app.use((err, req, res, next) => {
