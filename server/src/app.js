@@ -1,12 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-
+const coursesRouter = require("./routes/courses.routes");
 const app = express();
 
 // Core middleware
 app.use(cors());
 app.use(express.json());
-
+app.use("/api/courses", coursesRouter);
 // Placeholder health check route
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
