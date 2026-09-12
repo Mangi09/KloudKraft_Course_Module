@@ -105,6 +105,7 @@ function Courses() {
       );
 
       setStep(1);
+    
       setShowForm(true);
     } catch (err) {
       setError(err.message || "Failed to load course");
@@ -120,6 +121,7 @@ function Courses() {
     setIsSequential(false);
     setSections([]);
     setStep(1);
+    setEditingCourseId(null);
     setError("");
   };
 
@@ -256,8 +258,8 @@ function Courses() {
           description: description.trim(),
           category: category.trim() || null,
           status,
-          cohort_id: assignedCohortId ? Number(assignedCohortId) : null,
-          trainer_id: assignedTrainerId ? Number(assignedTrainerId) : null,
+          assigned_cohort_id: assignedCohortId ? Number(assignedCohortId) : null,
+          assigned_trainer_id: assignedTrainerId ? Number(assignedTrainerId) : null,
           is_sequential: isSequential,
           sections: sections.map((section, sectionIndex) => ({
             title: section.title.trim(),
@@ -1024,6 +1026,10 @@ function Courses() {
 }
 
 export default Courses;
+
+
+
+
 
 
 
