@@ -1,4 +1,4 @@
-ï»¿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 const API_URL = "http://localhost:5000/api";
@@ -8,6 +8,7 @@ function Courses() {
 
   const [courses, setCourses] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState(null);
   const [step, setStep] = useState(1);
 
   const [title, setTitle] = useState("");
@@ -23,6 +24,7 @@ function Courses() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [deletingCourseId, setDeletingCourseId] = useState(null);
 
   const loadCourses = async () => {
     try {
@@ -57,6 +59,57 @@ function Courses() {
     }
   }, [token]);
 
+  const handleEditCourse = async (courseId) => {
+    try {
+      setError("");
+
+      const response = await fetch(`${API_URL}/courses/${courseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || "Failed to load course");
+      }
+
+      const course = data.course;
+
+      setEditingCourseId(course.id);
+      setTitle(course.title || "");
+      setDescription(course.description || "");
+      setCategory(course.category || "");
+      setStatus(course.status || "DRAFT");
+      setAssignedCohortId(course.cohort_id ? String(course.cohort_id) : "");
+      setAssignedTrainerId(course.trainer_id ? String(course.trainer_id) : "");
+      setIsSequential(Boolean(course.is_sequential));
+
+      setSections(
+        (course.sections || []).map((section) => ({
+          id: section.id,
+          title: section.title || "",
+          description: section.description || "",
+          order_index: section.order_index ?? 1,
+          lessons: (section.lessons || []).map((lesson) => ({
+            id: lesson.id,
+            title: lesson.title || "",
+            type: lesson.type || "VIDEO",
+            content_url: lesson.content_url || "",
+            duration_minutes: lesson.duration_minutes ?? "",
+            mandatory: Boolean(lesson.mandatory),
+            order_index: lesson.order_index ?? 1,
+          })),
+        }))
+      );
+
+      setStep(1);
+      setShowForm(true);
+    } catch (err) {
+      setError(err.message || "Failed to load course");
+    }
+  };
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -187,6 +240,91 @@ function Courses() {
     setStep(3);
   };
 
+  const handleUpdateCourse = async () => {
+    try {
+      setSaving(true);
+      setError("");
+
+      const response = await fetch(`${API_URL}/courses/${editingCourseId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          category: category.trim() || null,
+          status,
+          cohort_id: assignedCohortId ? Number(assignedCohortId) : null,
+          trainer_id: assignedTrainerId ? Number(assignedTrainerId) : null,
+          is_sequential: isSequential,
+          sections: sections.map((section, sectionIndex) => ({
+            title: section.title.trim(),
+            description: section.description?.trim() || "",
+            order_index: sectionIndex + 1,
+            lessons: section.lessons.map((lesson, lessonIndex) => ({
+              title: lesson.title.trim(),
+              type: lesson.type,
+              content_url: lesson.content_url?.trim() || null,
+              duration_minutes: lesson.duration_minutes
+                ? Number(lesson.duration_minutes)
+                : null,
+              mandatory: Boolean(lesson.mandatory),
+              order_index: lessonIndex + 1,
+            })),
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || "Failed to update course");
+      }
+
+      await loadCourses();
+      resetForm();
+      setShowForm(false);
+    } catch (err) {
+      setError(err.message || "Failed to update course");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const handleDeleteCourse = async (courseId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this course?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingCourseId(courseId);
+      setError("");
+
+      const response = await fetch(`${API_URL}/courses/${courseId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || "Failed to delete course");
+      }
+
+      await loadCourses();
+    } catch (err) {
+      setError(err.message || "Failed to delete course");
+    } finally {
+      setDeletingCourseId(null);
+    }
+  };
   const handleCreateCourse = async () => {
     try {
       setSaving(true);
@@ -281,11 +419,11 @@ function Courses() {
         <div className="rounded-xl border border-app-border bg-app-panel p-6 shadow-sm">
           <div className="mb-8">
             <h3 className="text-2xl font-semibold">
-              Create Course
+              {editingCourseId ? "Edit Course" : "Create Course"}
             </h3>
 
             <p className="mt-1 text-sm text-app-muted">
-              Step {step} of 3 â€”{" "}
+              Step {step} of 3 —{" "}
               {step === 1
                 ? "Course Basics"
                 : step === 2
@@ -736,7 +874,7 @@ function Courses() {
               </h4>
 
               <p className="mt-1 text-sm text-app-muted">
-                Review the course before creating it.
+                {editingCourseId ? "Review the changes before updating the course" : "Review the course before creating it"}.
               </p>
 
               <div className="mt-5 rounded-lg border border-app-border p-5">
@@ -809,11 +947,11 @@ function Courses() {
 
                 <button
                   type="button"
-                  onClick={handleCreateCourse}
+                  onClick={editingCourseId ? handleUpdateCourse : handleCreateCourse}
                   disabled={saving}
                   className="rounded-md bg-app-primary px-5 py-3 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {saving ? "Creating..." : "Create Course"}
+                  {saving ? (editingCourseId ? "Updating..." : "Creating...") : (editingCourseId ? "Update Course" : "Create Course")}
                 </button>
               </div>
             </div>
@@ -848,14 +986,33 @@ function Courses() {
                     </h3>
 
                     <p className="mt-1 text-sm text-app-muted">
-                      {course.category || "Uncategorized"} Â·{" "}
+                      {course.category || "Uncategorized"} ·{" "}
                       {course.status}
                     </p>
                   </div>
 
-                  <span className="rounded-full border border-app-border px-4 py-2 text-xs font-medium">
-                    {course.status}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-full border border-app-border px-4 py-2 text-xs font-medium">
+                      {course.status}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => handleEditCourse(course.id)}
+                      className="rounded-md border border-app-border px-4 py-2 text-sm font-medium hover:bg-app-muted/10"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCourse(course.id)}
+                      disabled={deletingCourseId === course.id}
+                      className="rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {deletingCourseId === course.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -867,3 +1024,11 @@ function Courses() {
 }
 
 export default Courses;
+
+
+
+
+
+
+
+

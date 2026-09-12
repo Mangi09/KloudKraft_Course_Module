@@ -3,6 +3,8 @@ const {
   createCourse,
   listCourses,
   getCourseById,
+  updateCourse,
+  deleteCourse,
 } = require("../controllers/courses.controller");
 const asyncHandler = require("../utils/asyncHandler");
 const authMiddleware = require("../middleware/authMiddleware");
@@ -22,11 +24,31 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// All course endpoints require authentication
 router.use(authMiddleware);
 
 router.get("/", asyncHandler(listCourses));
-router.post("/", requireAdmin, asyncHandler(createCourse));
-router.get("/:id", asyncHandler(getCourseById));
+
+router.post(
+  "/",
+  requireAdmin,
+  asyncHandler(createCourse)
+);
+
+router.get(
+  "/:id",
+  asyncHandler(getCourseById)
+);
+
+router.put(
+  "/:id",
+  requireAdmin,
+  asyncHandler(updateCourse)
+);
+
+router.delete(
+  "/:id",
+  requireAdmin,
+  asyncHandler(deleteCourse)
+);
 
 module.exports = router;
