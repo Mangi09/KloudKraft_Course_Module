@@ -3,6 +3,8 @@ const cors = require("cors");
 const coursesRouter = require("./routes/courses.routes");
 const sectionsRouter = require("./routes/sections.routes");
 const lessonsRouter = require("./routes/lessons.routes");
+const authRoutes = require("./routes/authRoutes");
+
 const app = express();
 
 // Core middleware
@@ -16,8 +18,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// --- Routers will be mounted here in later days ---
-// e.g. app.use("/api/auth", authRouter);
+app.use("/api/auth", authRoutes);
 
 // Centralized error-handling middleware (must be registered last)
 app.use((err, req, res, next) => {
