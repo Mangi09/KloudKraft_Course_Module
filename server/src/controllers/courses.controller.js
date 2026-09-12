@@ -128,6 +128,7 @@ async function createCourse(req, res) {
       is_sequential: asBool(req.body.is_sequential),
       assigned_cohort_id: assignedCohortId,
       assigned_trainer_id: assignedTrainerId,
+      created_by: req.user.id,
     });
 
     for (const [sectionIndex, section] of (req.body.sections || []).entries()) {

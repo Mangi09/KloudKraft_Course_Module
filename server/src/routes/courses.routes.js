@@ -5,6 +5,7 @@ const {
   getCourseById,
 } = require("../controllers/courses.controller");
 const asyncHandler = require("../utils/asyncHandler");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -20,6 +21,9 @@ function requireAdmin(req, res, next) {
 
   next();
 }
+
+// All course endpoints require authentication
+router.use(authMiddleware);
 
 router.get("/", asyncHandler(listCourses));
 router.post("/", requireAdmin, asyncHandler(createCourse));
